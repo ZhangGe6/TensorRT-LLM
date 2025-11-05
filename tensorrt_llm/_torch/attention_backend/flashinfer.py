@@ -491,7 +491,8 @@ class FlashInferAttention(AttentionBackend[FlashInferAttentionMetadata]):
         q = q.view(-1, self.num_heads, self.head_dim)
 
         # Key and Value
-        kv_cache = metadata.kv_cache_manager.get_buffers(self.layer_idx)
+        kv_cache = metadata.kv_cache_manager.get_buffers(
+            self.layer_idx, kv_layout=metadata.kv_layout)
 
         if k is not None and v is not None:
             k = k.view(-1, self.num_kv_heads, self.head_dim)

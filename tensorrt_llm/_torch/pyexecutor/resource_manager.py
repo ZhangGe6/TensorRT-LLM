@@ -617,7 +617,20 @@ class KVCacheManager(BaseResourceManager):
         return (self.get_num_free_blocks() * self.tokens_per_block -
                 self.num_extra_kv_tokens - max_num_draft_tokens)
 
-    def get_buffers(self, layer_idx: int) -> Optional[torch.Tensor]:
+    def get_buffers(self, layer_idx: int, kv_layout: str = "NHD") -> Optional[torch.Tensor]:
+        ''' Slice KV tensor for a specified layer and reshape it. 
+
+        1. Slice:
+            [max_num_pages, num_layers, kv_factor, page_size * num_kv_heads * head_dim] ->
+            [max_num_pages, kv_factor, page_size * num_kv_heads * head_dim]
+
+        2. Reshape:
+            kv_layout = "NHD" -> [max_num_pages, kv_factor, page_size, num_kv_heads, head_dim]
+            kv_layout = "HND" -> [max_num_pages, kv_factor, num_kv_heads, page_size, head_dim]
+
+        Note different attention backend/implementation can have different KV layouts,
+        "kv_layout" should be set accordingly to avoid surprises.
+        '''
         layer_offset = self.layer_offsets[layer_idx]
         result = self.impl.get_primary_pool_data(layer_offset)
         if self.kv_layout == "HND":
