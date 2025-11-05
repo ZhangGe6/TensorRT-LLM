@@ -151,7 +151,8 @@ class PyExecutor:
                  kv_cache_transceiver: Optional[KvCacheTransceiver] = None,
                  guided_decoder: Optional[GuidedDecoder] = None,
                  garbage_collection_gen0_threshold: Optional[int] = None,
-                 start_worker: bool = True):
+                 start_worker: bool = True,
+                 kv_layout: str = "NHD"):
         super(PyExecutor, self).__init__()
         self.device_id = torch.cuda.current_device()
         self.global_rank = global_mpi_rank()
@@ -219,6 +220,16 @@ class PyExecutor:
 
         self.inflight_req_ids = ReqIdsSet()
 
+        self.kv_cache_transceiver = kv_cache_transceiver
+        self.kv_layout = kv_layout
+        if self.kv_cache_transceiver:
+            logger.warning(
+                "KV cache concat/split kernels when using PD disaggreation "
+                "expects KV cache in 'HND' layout")
+            self.kv_layout = "HND"
+            self.kv_cache_manager.kv_layout = self.kv_layout
+            self.model_engine.kv_layout = self.kv_layout
+
         self.model_engine.warmup(self.resource_manager)
         if self.draft_model_engine is not None:
             self.draft_model_engine.warmup(self.resource_manager)
@@ -245,7 +256,6 @@ class PyExecutor:
         self.stats = []
         self.gather_all_responses = False
 
-        self.kv_cache_transceiver = kv_cache_transceiver
         if self.dist.pp_size > 1:
             self.event_loop = self._executor_loop_pp
         else:

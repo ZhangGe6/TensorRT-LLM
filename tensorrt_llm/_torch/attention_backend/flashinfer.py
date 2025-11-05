@@ -56,8 +56,6 @@ class FlashInferWrappers:
 class FlashInferAttentionMetadata(AttentionMetadata):
     workspace_buffer: Optional[torch.Tensor] = None
 
-    kv_layout: Literal["NHD", "HND"] = "NHD"
-
     paged_kv_indptr_decode: torch.Tensor = field(init=False)
     paged_kv_indptr_prefill: torch.Tensor = field(init=False)
     _paged_kv_indices: torch.Tensor = field(init=False, repr=False)

@@ -274,6 +274,7 @@ class PyTorchModelEngine(ModelEngine):
         spec_config: Optional["DecodingBaseConfig"] = None,
         lora_config: Optional[LoraConfig] = None,
         is_draft_model: bool = False,
+        kv_layout: str = "HND"
     ):
         self.ub_buffers = None
         self.batch_size = batch_size
@@ -292,6 +293,7 @@ class PyTorchModelEngine(ModelEngine):
         self.is_spec_decode = spec_config is not None
         self.enable_spec_decode = self.is_spec_decode
         self.is_draft_model = is_draft_model
+        self.kv_layout = kv_layout
 
         self.in_warmup = False
 
@@ -814,7 +816,8 @@ class PyTorchModelEngine(ModelEngine):
                 runtime_features=self.attn_runtime_features,
                 enable_flash_mla=self.model.model_config.enable_flash_mla,
                 enable_paged_context_mla=enable_paged_context_mla,
-                cache_indirection=cache_indirection)
+                cache_indirection=cache_indirection,
+                kv_layout=self.kv_layout)
 
         if self.attn_metadata is not None:
             # This assertion can be relaxed if needed: just create a new metadata
@@ -831,7 +834,8 @@ class PyTorchModelEngine(ModelEngine):
             runtime_features=self.attn_runtime_features,
             enable_flash_mla=self.model.model_config.enable_flash_mla,
             enable_paged_context_mla=enable_paged_context_mla,
-            cache_indirection=cache_indirection)
+            cache_indirection=cache_indirection,
+            kv_layout=self.kv_layout)
 
         return self.attn_metadata
 

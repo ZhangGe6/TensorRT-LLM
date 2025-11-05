@@ -4,7 +4,7 @@ from collections import namedtuple
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 from typing import (Generic, List, Optional, Protocol, Tuple, Type, TypeVar,
-                    Union)
+                    Union, Literal)
 
 import torch
 from typing_extensions import Self
@@ -49,6 +49,8 @@ class AttentionMetadata:
     max_num_sequences: Optional[int] = None
     # The KV cache manager.
     kv_cache_manager: KVCacheManager
+    # The KV layout
+    kv_layout: Literal["NHD", "HND"] = "HND"
     mapping: Optional[Mapping] = None
 
     enable_flash_mla: bool = False
